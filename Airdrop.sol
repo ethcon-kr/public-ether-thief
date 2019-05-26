@@ -43,10 +43,10 @@ contract AirdropFactory {
         _;
     }
 
-    function topUp() public payable {
+    function () payable external {
     }
 
-    function addAirdropAccount(address _account) public {
+    function addAirdropAccount(address _account) public ownerOnly {
         require(!isIncluded(_account));
         airdropAccounts.push(_account);
     }
@@ -69,3 +69,4 @@ contract AirdropFactory {
         return included;
     }
 }
+
