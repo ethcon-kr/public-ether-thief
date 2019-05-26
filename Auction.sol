@@ -1,3 +1,11 @@
+// use overflow and underflow
+// use psuedo safemath library
+// use commit/reveal system
+
+// blind auction
+// commit 후 일정시간 이후에 reveal 방식
+// reveal시에 가장 높은 액수
+
 pragma solidity ^0.5.0;
 
 /**
@@ -66,60 +74,65 @@ library SafeMath {
 
 
 contract Auction {
-  using SafeMath for uint;
+    using SafeMath for uint;
 
-  uint public endTime;
-  uint public highestBid;
-  address public winner;
+    uint public endTime;
+    uint public highestBid;
+    address public winner;
 
-  mapping(address => bytes32) public bid;
-  mapping(address => bool) public revealed;
+    mapping(address => bytes32) public bid;
+    mapping(address => bool) public revealed;
 
-  constructor() public payable {
-    endTime = now + 5 seconds;
-  }
+    constructor() public payable {
+        endTime = now + 30 minutes;
+    }
 
-  function commit(bytes32 _bid, uint _time) public returns(bool) {
-    require(now < endTime);
-    require(!revealed[msg.sender]);
-    bid[msg.sender] = _bid;
-    endTime = endTime.add(_time);
-    return true;
-  }
+    function commit(bytes32 _bid, uint _time) public returns (bool) {
+        require(now < endTime);
+        require(!revealed[msg.sender]);
+        bid[msg.sender] = _bid;
+        endTime = endTime.add(_time);
+        return true;
+    }
 
-  function reveal(uint _value) public returns(bool) {
-    require(keccak256(toBytes(_value)) == bid[msg.sender], "invalid value");
-    highestBid = _value;
-    winner = msg.sender;
-    return true;
-  }
+    function reveal(uint _value) public returns (bool) {
+        require(keccak256(toBytes(_value)) == bid[msg.sender], "invalid value");
+        highestBid = _value;
+        winner = msg.sender;
+        return true;
+    }
 
-  function claim() public payable returns(bool) {
-    require(now > endTime);
-    require(msg.sender == winner);
-    require(msg.value == highestBid);
-    msg.sender.transfer(address(this).balance);
-    return true;
-  }
+    function claim() public payable returns (bool) {
+        require(now > endTime);
+        require(msg.sender == winner);
+        require(msg.value == highestBid);
+        msg.sender.transfer(address(this).balance);
+        return true;
+    }
 
-  function getHash(bytes memory _value, uint _value1) public pure returns(bytes32, bytes memory){
-    return (keccak256(_value), toBytes(_value1));
-  }
+    function getHash(bytes memory _value, uint _value1) public pure returns (bytes32, bytes memory){
+        return (keccak256(_value), toBytes(_value1));
+    }
 
-  function getHighestBid() public view returns(uint) {
-    return highestBid;
-  }
+    function() payable external {
+    }
 
-  function getWinner() public view returns(address) {
-    return winner;
-  }
 
-  function getEndTime() public view returns(uint) {
-    return endTime;
-  }
+    function getHighestBid() public view returns (uint) {
+        return highestBid;
+    }
 
-  function toBytes(uint256 x) public pure returns (bytes memory b) {
-    b = new bytes(32);
-    assembly { mstore(add(b, 32), x) }
-  }
+    function getWinner() public view returns (address) {
+        return winner;
+    }
+
+    function getEndTime() public view returns (uint) {
+        return endTime;
+    }
+
+    function toBytes(uint256 x) public pure returns (bytes memory b) {
+        b = new bytes(32);
+        assembly {mstore(add(b, 32), x)}
+    }
 }
+
